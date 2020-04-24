@@ -24,7 +24,7 @@ filterwarnings("ignore")
 # Run code on GPU
 config = tf.ConfigProto(device_count={'GPU': 1, 'CPU': 1})
 sess = tf.Session(config=config)
-K.backend.set_session(sess)
+K.set_session(sess)
 
 # Read Data and do initial pre-processing
 (x_train, y_train), (x_test, y_test) = cifar10.load_data()
