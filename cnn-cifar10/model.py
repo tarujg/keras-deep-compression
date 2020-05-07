@@ -12,8 +12,8 @@ from keras.layers import Conv2D, MaxPooling2D
 from keras.optimizers import SGD, RMSprop, Adam
 from keras.preprocessing.image import ImageDataGenerator
 
-from .utils.hyperparams import parse_args
-from .utils.utils import *
+from utils.hyperparams import parse_args
+from utils.utils import *
 
 import os
 

@@ -1,3 +1,3 @@
 .idea/
-./cnn-cifar10/utils/
-./cnn-cifar10/checkpoints
+cnn-cifar10/utils/
+cnn-cifar10/checkpoints/
