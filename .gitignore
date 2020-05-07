@@ -1,3 +1,4 @@
 .idea/
 cnn-cifar10/utils/
 cnn-cifar10/checkpoints/
+parameter-pruning/pretrained_cifar10.h5
