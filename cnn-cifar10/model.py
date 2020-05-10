@@ -1,3 +1,6 @@
+from warnings import filterwarnings
+filterwarnings("ignore")
+
 # Data loading and pre-processing
 from keras.datasets import cifar10
 from keras.utils import np_utils
@@ -17,9 +20,7 @@ from utils.utils import *
 
 import os
 
-from warnings import filterwarnings
 
-filterwarnings("ignore")
 
 # Run code on GPU
 config = tf.ConfigProto(device_count={'GPU': 1, 'CPU': 1})
