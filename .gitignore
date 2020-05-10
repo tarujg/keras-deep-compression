@@ -2,3 +2,6 @@
 cnn-cifar10/utils/
 cnn-cifar10/checkpoints/
 parameter-pruning/pretrained_cifar10.h5
+parameter-pruning/.ipynb_checkpoints
+parameter-pruning/utils/__pycache__/
+parameter-pruning/utils/__init__.py
