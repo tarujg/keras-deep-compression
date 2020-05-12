@@ -26,8 +26,8 @@ def parse_args():
     parser.add_argument('--pruning_percentage', default=0.9, type=float,
                         help='Percentage of weights to prune for a model')
 
-    parser.add_argument('--Layer', type=str,
-                        help='Layer to be pruned')
+    parser.add_argument('--Layer', default=0, type=int,
+                        help='Layer index to be pruned')
 
     parser.add_argument('--training', dest='training', action='store_true',
                         help='Boolean flag to train model')

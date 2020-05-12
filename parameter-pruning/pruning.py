@@ -5,24 +5,24 @@ filterwarnings("ignore")
 # Data loading and pre-processing
 from keras.datasets import cifar10
 from keras.utils import np_utils
+from keras.optimizers import Adam
+from keras import backend as K
+import tensorflow as tf
+
 import numpy as np
+import os
+import csv
 
 # Model related imports
-from keras.optimizers import Adam
-from keras.layers import Input
-
 from utils.hyperparams import parse_args
 from utils.pruned_layers import *
 from utils.utils import create_dir_if_not_exists
 from utils.model import get_model, convert_to_masked_model
 
-import os
-import csv
-
 # Run code on GPU
-# config = tf.ConfigProto(device_count={'GPU': 1, 'CPU': 1})
-# sess = tf.Session(config=config)
-# K.set_session(sess)
+config = tf.ConfigProto(device_count={'GPU': 1, 'CPU': 1})
+sess = tf.Session(config=config)
+K.set_session(sess)
 
 # Read Data and do initial pre-processing
 (x_train, y_train), (x_test, y_test) = cifar10.load_data()
@@ -55,38 +55,43 @@ model.load_weights(arg.weights_path)
 optimizer = Adam(lr=arg.lr, decay=1e-6)
 model.compile(loss='categorical_crossentropy', optimizer=optimizer, metrics=['accuracy'])
 
-batch_size = arg.batch_size
 training = arg.training
 compressing = arg.compressing
 
-# make sure weights are loaded correctly by evaluating the model here and printing the output
-#test_loss, test_acc = model.evaluate(x_test, y_test, batch_size=batch_size)
-#print("Non-pruned accuracy: {}".format(test_acc))
+# ensure weights are loaded correctly by evaluating the model here and printing the output
+# test_loss, test_acc = model.evaluate(x_test, y_test, batch_size=arg.batch_size)
+# print("Non-pruned accuracy: {}".format(test_acc))
 
 # convert the layers to masked layers
 pruned_model = convert_to_masked_model(model)
 optimizer = Adam(lr=arg.lr, decay=1e-6)
 pruned_model.compile(loss='categorical_crossentropy', optimizer=optimizer, metrics=['accuracy'])
 
-pruned_test_loss, pruned_test_acc = pruned_model.evaluate(x_test, y_test, batch_size=batch_size)
-print("Pruned accuracy: {}".format(pruned_test_acc))
+# pruned_test_loss, pruned_test_acc = pruned_model.evaluate(x_test, y_test, batch_size=arg.batch_size)
+# print("Pruned accuracy: {}".format(pruned_test_acc))
 
-experiment_name = "Training_{}_Compressing_{}_Layer_{}".format(arg.training, arg.compressing, arg.Layer)
-create_dir_if_not_exists('./results')
-create_dir_if_not_exists(os.path.join('./results', experiment_name))
+layers = [0, 3, 7, 10, 14, 17, 21, 24]
 
-for pruning_percentage in list(range(5, 100, 5)):
-    # Read the weights
-    weights = pruned_model.layer[0].get_weights()[0]
-    # getting the indices of weight values above threshold of pruning_percentage
-    index = np.abs(weights) > np.percentile(np.abs(weights), pruning_percentage)
-    pruned_model.layer[0].set_mask(index.astype(float))
+for layer_index in layers:
+    experiment_name = "Layer_{}".format(layer_index)
+    create_dir_if_not_exists('./results')
+    create_dir_if_not_exists(os.path.join('./results', experiment_name))
 
-    # ensure weights loaded correctly by evaluating the prunable model
-    pruned_test_loss, pruned_test_acc = pruned_model.evaluate(x_test, y_test, batch_size=batch_size)
+    lines = []
+    for pruning_percentage in list(range(0, 100, 5)):
+        # Read the weights
+        weights = pruned_model.layers[layer_index].get_weights()[0]
+        # Getting the indices of weight values above threshold of pruning_percentage
+        index = np.abs(weights) > np.percentile(np.abs(weights), pruning_percentage)
+        pruned_model.layers[layer_index].set_mask(index.astype(float))
 
-    # save_loss_plots(history, os.path.join('./results', experiment_name))
+        # Ensure weights loaded correctly by evaluating the prunable model
+        pruned_test_loss, pruned_test_acc = pruned_model.evaluate(x_test, y_test, batch_size=arg.batch_size)
+        lines.append([pruning_percentage, pruned_test_loss, pruned_test_acc])
 
-    with open(os.path.join('./results', experiment_name, 'results.csv'), 'w') as csvfile:
-        writer = csv.writer(csvfile, delimiter='\t')
-        writer.writerow(['pruning_percentage', 'pruned_test_loss', 'pruned_test_acc'])
+    header = ['Pruning_percentage', 'Loss', 'Accuracy']
+
+    with open(os.path.join('./results', experiment_name, 'results.csv'), 'w', newline='') as file:
+        writer = csv.writer(file, delimiter='\t')
+        writer.writerow(header)
+        writer.writerows(lines)

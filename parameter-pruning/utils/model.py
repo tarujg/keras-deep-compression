@@ -3,7 +3,6 @@ from keras.layers import Dense, Activation, Conv2D, MaxPooling2D, Flatten
 from keras.layers.normalization import BatchNormalization
 from keras.models import Sequential
 from .pruned_layers import pruned_Conv2D, pruned_Dense
-import numpy as np
 
 
 def get_model(args):
