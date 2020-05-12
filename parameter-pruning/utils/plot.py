@@ -1,30 +1,27 @@
-import matplotlib.pyplot as plt
-import csv
 import os
+import pandas as pd
+import matplotlib.pyplot as plt
 
-layers = [0, 3, 7, 10, 14, 17, 21, 24,27]
+layers = {"CONV": [0, 3, 7, 10, 14, 17],
+          "DENSE": [21, 24, 27]}
 
-for layer_index in layers:
-    experiment_name = "Layer_{}".format(layer_index)
+keys = list(layers.keys())
 
-    x = []
-    y = []
-    directory = os.path.join('../results', experiment_name)
+for item in keys:
+    fig, ax = plt.subplots()
+    for index, layer_index in enumerate(layers[item]):
+        experiment_name = "Layer_{}".format(layer_index)
+        directory = os.path.join('../results', experiment_name)
 
-    with open(os.path.join(directory, 'results.csv'), 'r') as csvfile:
-        plots = csv.reader(csvfile, delimiter='\t')
-        next(plots)
-        for row in plots:
-            x.append(int(row[0]))
-            y.append(100*float(row[2]))
+        df = pd.read_csv(os.path.join(directory, 'results.csv'), sep='\t')
+        df['Accuracy'] = 100*df['Accuracy']
+        df.plot(x='Pruning_percentage', y='Accuracy', ax=ax, label="{}_{}".format(item, index+1))
 
-        plt.figure()
-        plt.plot(x, y)
-        plt.title('Test accuracy after pruning')
-        plt.ylabel("Accuracy")
-        plt.xlabel('Pruning Percentage')
-        # plt.legend(['train', 'test'], loc='upper left')
-        plt.tight_layout()
-        plt.savefig(os.path.join(directory, 'plot.pdf'))
-        plt.close()
-        plt.tight_layout()
+    ax.set_xticks(range(0, 105, 10))
+    ax.set_yticks(range(0, 95, 10))
+    ax.set_xlabel("Percentage of Neurons Pruned")
+    ax.set_ylabel("Accuracy on CIFAR-10 test set")
+    ax.set_title("Pruning Percentage for {} Layers".format(item))
+    ax.grid(linewidth=0.25)
+
+    plt.savefig('../results/{}.pdf'.format(item))
