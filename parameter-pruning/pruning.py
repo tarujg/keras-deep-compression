@@ -1,4 +1,5 @@
 from warnings import filterwarnings
+
 filterwarnings("ignore")
 
 # Data loading and pre-processing
@@ -8,6 +9,7 @@ import numpy as np
 
 # Model related imports
 from keras.optimizers import Adam
+from keras.layers import Input
 
 from utils.hyperparams import parse_args
 from utils.pruned_layers import *
@@ -59,18 +61,21 @@ compressing = arg.compressing
 
 # make sure weights are loaded correctly by evaluating the model here and printing the output
 #test_loss, test_acc = model.evaluate(x_test, y_test, batch_size=batch_size)
+#print("Non-pruned accuracy: {}".format(test_acc))
 
 # convert the layers to masked layers
 pruned_model = convert_to_masked_model(model)
 optimizer = Adam(lr=arg.lr, decay=1e-6)
 pruned_model.compile(loss='categorical_crossentropy', optimizer=optimizer, metrics=['accuracy'])
 
+pruned_test_loss, pruned_test_acc = pruned_model.evaluate(x_test, y_test, batch_size=batch_size)
+print("Pruned accuracy: {}".format(pruned_test_acc))
 
-experiment_name = "Training_{}_Compressing_{}_Layer_{}".format(arg.Training, arg.Compressing, arg.Layer)
+experiment_name = "Training_{}_Compressing_{}_Layer_{}".format(arg.training, arg.compressing, arg.Layer)
 create_dir_if_not_exists('./results')
 create_dir_if_not_exists(os.path.join('./results', experiment_name))
 
-for pruning_percentage in list(range(5,100,5)):
+for pruning_percentage in list(range(5, 100, 5)):
     # Read the weights
     weights = pruned_model.layer[0].get_weights()[0]
     # getting the indices of weight values above threshold of pruning_percentage

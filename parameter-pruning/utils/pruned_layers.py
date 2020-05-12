@@ -1,7 +1,6 @@
-import numpy as np
 from keras import backend as K
+from keras.utils.conv_utils import conv_output_length
 from keras.engine.topology import Layer
-from keras.initializers import glorot_normal, zeros,ones
 
 
 class pruned_Dense(Layer):
@@ -15,16 +14,19 @@ class pruned_Dense(Layer):
         shape = (num_input, self.num_output)
 
         # initialize the weight matrix and bias, i.e., trainable variables
-        self.weight = self.add_weight(shape=shape, initializer=glorot_normal(), dtype=self.dtype,
+        self.weight = self.add_weight(shape=shape, initializer="glorot_normal", dtype=self.dtype,
                                       name='weight', trainable=True)
-        self.bias = K.variable(np.zeros(self.num_output), name='bias', dtype=self.dtype)
+        self.bias = self.add_weight(shape=(self.num_output,), initializer="zeros", name='bias', trainable=True)
+
         self.trainable_weights = [self.weight, self.bias]
 
         # non-trainable weight for pruning (only 0 or 1, where 0 is for pruning)
-        self.mask = self.add_weight(shape=shape, initializer=ones(), dtype=self.dtype, name='mask', trainable=False)
+        self.mask = self.add_weight(shape=shape, initializer="ones", dtype=self.dtype, name='mask', trainable=False)
+
+        super(pruned_Dense, self).build(input_shape)
 
     def call(self, x):
-        # define the input-output relationship in this layer in this function
+        # forward pass of layer
         pruned_weight = self.weight * self.mask
         out = K.dot(x, pruned_weight) + self.bias
         return out
@@ -50,24 +52,30 @@ class pruned_Conv2D(Layer):
         self.padding = padding
         self.dtype = 'float32'
         super(pruned_Conv2D, self).__init__(**kwargs)
-        return
 
     def build(self, input_shape):
-        shape = (self.kernel_size, self.kernel_size, input_shape[-1], self.filters)
-        self.weight = self.add_weight(shape=shape, initializer=glorot_normal(), dtype=self.dtype, trainable=True, name='weight')
-        self.bias = K.variable(np.zeros(self.filters), name='bias', dtype=self.dtype)
+        shape = self.kernel_size + (input_shape[-1], self.filters)
+        self.weight = self.add_weight(shape=shape, initializer="glorot_normal", dtype=self.dtype, trainable=True,
+                                      name='weight')
+        self.bias = self.add_weight(shape=(self.filters,), initializer="zeros", name='bias', trainable=True)
         self.trainable_weights = [self.weight, self.bias]
 
-        self.mask = self.add_weight(shape=shape, initializer=ones(), dtype=self.dtype, name='mask', trainable=False)
+        self.mask = self.add_weight(shape=shape, initializer="ones", dtype=self.dtype, name='mask', trainable=False)
+
+        super(pruned_Conv2D, self).build(input_shape)
 
     def call(self, x):
-        # define the input-output relationship in this layer in this function
+        # forward pass of layer
         pruned_kernel = self.weight * self.mask
         out = K.conv2d(x, pruned_kernel, strides=self.strides, padding=self.padding) + self.bias
         return out
 
     def compute_output_shape(self, input_shape):
-        return input_shape[:-1] + (self.filters,)
+        output_shape = []
+        for i in range(len(self.kernel_size)):
+            output_shape.append(
+                conv_output_length(input_shape[1 + i], self.kernel_size[i], self.padding, self.strides[i]))
+        return (None,) + tuple(output_shape) + (self.filters,)
 
     def get_mask(self):
         # get the mask values
