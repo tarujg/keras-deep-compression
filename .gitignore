@@ -5,3 +5,4 @@ parameter-pruning/pretrained_cifar10.h5
 parameter-pruning/.ipynb_checkpoints
 parameter-pruning/utils/__pycache__/
 parameter-pruning/results/*
+tensor-decomposition/utils/__pycache__/
