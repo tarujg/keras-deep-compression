@@ -1,8 +1,11 @@
 .idea/
 cnn-cifar10/utils/
 cnn-cifar10/checkpoints/
+cnn-cifar10/.ipynb_checkpoints
 parameter-pruning/pretrained_cifar10.h5
 parameter-pruning/.ipynb_checkpoints
 parameter-pruning/utils/__pycache__/
 parameter-pruning/results/*
 tensor-decomposition/utils/__pycache__/
+tensor-decomposition/.ipynb_checkpoints
+tensor-decomposition/pretrained_cifar10.h5

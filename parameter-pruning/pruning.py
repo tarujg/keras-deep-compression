@@ -70,7 +70,7 @@ pruned_model.compile(loss='categorical_crossentropy', optimizer=optimizer, metri
 # pruned_test_loss, pruned_test_acc = pruned_model.evaluate(x_test, y_test, batch_size=arg.batch_size)
 # print("Pruned accuracy: {}".format(pruned_test_acc))
 
-layers = [0, 3, 7, 10, 14, 17, 21, 24]
+layers = [0, 3, 7, 10, 14, 17, 21, 24, 27]
 
 for layer_index in layers:
     experiment_name = "Layer_{}".format(layer_index)
@@ -78,7 +78,7 @@ for layer_index in layers:
     create_dir_if_not_exists(os.path.join('./results', experiment_name))
 
     lines = []
-    for pruning_percentage in list(range(0, 100, 5)):
+    for pruning_percentage in list(range(0, 100, 1)):
         # Read the weights
         weights = pruned_model.layers[layer_index].get_weights()[0]
         # Getting the indices of weight values above threshold of pruning_percentage
