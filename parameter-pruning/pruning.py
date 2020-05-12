@@ -89,6 +89,8 @@ for layer_index in layers:
         pruned_test_loss, pruned_test_acc = pruned_model.evaluate(x_test, y_test, batch_size=arg.batch_size)
         lines.append([pruning_percentage, pruned_test_loss, pruned_test_acc])
 
+    pruned_model.layers[layer_index].set_mask(np.ones(pruned_model.layers[layer_index].get_weights()[0].shape))
+
     header = ['Pruning_percentage', 'Loss', 'Accuracy']
 
     with open(os.path.join('./results', experiment_name, 'results.csv'), 'w', newline='') as file:
