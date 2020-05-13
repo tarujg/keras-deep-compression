@@ -55,8 +55,8 @@ optimizer = Adam(lr=arg.lr, decay=1e-6)
 model.compile(loss='categorical_crossentropy', optimizer=optimizer, metrics=['accuracy'])
 
 # ensure weights are loaded correctly by evaluating the model here and printing the output
-test_loss, test_acc = model.evaluate(x_test, y_test, batch_size=arg.batch_size)
-print("Test accuracy: {}".format(test_acc))
+#test_loss, test_acc = model.evaluate(x_test, y_test, batch_size=arg.batch_size)
+#print("Test accuracy: {}".format(test_acc))
 
 r_fixed = 64
 experiment_r1_fixed = "CONV_2_reconstruction_loss_r1_{}".format(r_fixed)
@@ -66,7 +66,7 @@ create_dir_if_not_exists(os.path.join('./results', experiment_r1_fixed))
 create_dir_if_not_exists(os.path.join('./results', experiment_r2_fixed))
 lines_r1, lines_r2 = [], []
 
-for r in list(range(1, 64, 1)):
+for r in list(range(1, 65, 1)):
     lines_r1.append([r_fixed, r, tucker_reconstruction_loss(model.layers[3], [r_fixed, r])])
     lines_r2.append([r, r_fixed, tucker_reconstruction_loss(model.layers[3], [r, r_fixed])])
 

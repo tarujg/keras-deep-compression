@@ -9,3 +9,4 @@ parameter-pruning/results/*
 tensor-decomposition/utils/__pycache__/
 tensor-decomposition/.ipynb_checkpoints
 tensor-decomposition/pretrained_cifar10.h5
+tensor-decomposition/results/*
