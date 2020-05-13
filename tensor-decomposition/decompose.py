@@ -6,7 +6,6 @@ filterwarnings("ignore")
 from keras.datasets import cifar10
 from keras.utils import np_utils
 from keras.optimizers import Adam
-from keras import backend as K
 import tensorflow as tf
 
 import numpy as np
@@ -16,6 +15,8 @@ import csv
 # Model related imports
 from utils.hyperparams import parse_args
 from utils.model import get_model
+from utils.utils import create_dir_if_not_exists
+from utils.tucker import tucker_reconstruction_loss, tucker_decomposition, compute_rank_list
 
 # Run code on GPU
 # config = tf.ConfigProto(device_count={'GPU': 1, 'CPU': 1})
@@ -57,3 +58,26 @@ model.compile(loss='categorical_crossentropy', optimizer=optimizer, metrics=['ac
 test_loss, test_acc = model.evaluate(x_test, y_test, batch_size=arg.batch_size)
 print("Test accuracy: {}".format(test_acc))
 
+r_fixed = 64
+experiment_r1_fixed = "CONV_2_reconstruction_loss_r1_{}".format(r_fixed)
+experiment_r2_fixed = "CONV_2_reconstruction_loss_r2_{}".format(r_fixed)
+create_dir_if_not_exists('./results')
+create_dir_if_not_exists(os.path.join('./results', experiment_r1_fixed))
+create_dir_if_not_exists(os.path.join('./results', experiment_r2_fixed))
+lines_r1, lines_r2 = [], []
+
+for r in list(range(1, 64, 1)):
+    lines_r1.append([r_fixed, r, tucker_reconstruction_loss(model.layers[3], [r_fixed, r])])
+    lines_r2.append([r, r_fixed, tucker_reconstruction_loss(model.layers[3], [r, r_fixed])])
+
+with open(os.path.join('./results', experiment_r1_fixed, 'results.csv'), 'w', newline='') as file:
+    header = ['r1', 'r2', 'reconstruction_loss']
+    writer = csv.writer(file, delimiter='\t')
+    writer.writerow(header)
+    writer.writerows(lines_r1)
+
+with open(os.path.join('./results', experiment_r2_fixed, 'results.csv'), 'w', newline='') as file:
+    header = ['r1', 'r2', 'reconstruction_loss']
+    writer = csv.writer(file, delimiter='\t')
+    writer.writerow(header)
+    writer.writerows(lines_r2)
