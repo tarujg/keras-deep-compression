@@ -28,12 +28,13 @@ def tucker_decomposition(layer, tucker_rank):
     # O - (f,r2)
     core, [I, O] = partial_tucker(weights, modes=[2, 3], ranks=tucker_rank, init='svd')
 
-    input_layer = Conv2D(filters=I.shape[1], kernel_size=1, strides=(1, 1), padding='valid',
-                         input_shape=[None, None, I.shape[0]], use_bias=False)
-    core_layer = Conv2D(filters=core.shape[-1], kernel_size=core.shape[0], strides=strides, padding=padding,
-                        input_shape=[None, None, core.shape[-2]], use_bias=False)
-    output_layer = Conv2D(filters=O.shape[0], kernel_size=1, strides=(1, 1), padding='valid',
-                          input_shape=[None, None, core.shape[-1]], use_bias=True)
+    input_layer = Conv2D(filters=I.shape[1], kernel_size=1, strides=(1, 1), padding='valid', use_bias=False)
+    core_layer = Conv2D(filters=core.shape[-1], kernel_size=core.shape[0], strides=strides, padding=padding, use_bias=False)
+    output_layer = Conv2D(filters=O.shape[0], kernel_size=1, strides=(1, 1), padding='valid', use_bias=True)
+
+    input_layer.build(input_shape= [None, None, I.shape[0]])
+    core_layer.build(input_shape=[None, None, core.shape[-2]])
+    output_layer.build(input_shape=[None, None, core.shape[-1]])
 
     input_layer.set_weights([I[np.newaxis, np.newaxis]])
     core_layer.set_weights([core])
@@ -68,5 +69,5 @@ def compute_rank_list(layer, k):
             r1 = k*c/8, r2 = f*c/8
     """
     c, f = layer.get_weights()[0].shape[2:]
-    r1, r2 = k * c / 8, k * f / 8
+    r1, r2 = int(k * c / 8), int(k * f / 8)
     return [r1, r2]

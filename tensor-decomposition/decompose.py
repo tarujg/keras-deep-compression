@@ -14,9 +14,9 @@ import csv
 
 # Model related imports
 from utils.hyperparams import parse_args
-from utils.model import get_model
+from utils.model import get_model, decomposed_model
 from utils.utils import create_dir_if_not_exists
-from utils.tucker import tucker_reconstruction_loss, tucker_decomposition, compute_rank_list
+from utils.tucker import tucker_reconstruction_loss
 
 # Run code on GPU
 # config = tf.ConfigProto(device_count={'GPU': 1, 'CPU': 1})
@@ -55,8 +55,8 @@ optimizer = Adam(lr=arg.lr, decay=1e-6)
 model.compile(loss='categorical_crossentropy', optimizer=optimizer, metrics=['accuracy'])
 
 # ensure weights are loaded correctly by evaluating the model here and printing the output
-#test_loss, test_acc = model.evaluate(x_test, y_test, batch_size=arg.batch_size)
-#print("Test accuracy: {}".format(test_acc))
+# test_loss, test_acc = model.evaluate(x_test, y_test, batch_size=arg.batch_size)
+# print("Test accuracy: {}".format(test_acc))
 
 r_fixed = 64
 experiment_r1_fixed = "CONV_2_reconstruction_loss_r1_{}".format(r_fixed)
@@ -81,3 +81,11 @@ with open(os.path.join('./results', experiment_r2_fixed, 'results.csv'), 'w', ne
     writer = csv.writer(file, delimiter='\t')
     writer.writerow(header)
     writer.writerows(lines_r2)
+
+for k in [1]:#list(range(1, 8)):
+    tucker_model = decomposed_model(model, k)
+    optimizer = Adam(lr=arg.lr, decay=1e-6)
+    tucker_model.compile(loss='categorical_crossentropy', optimizer=optimizer, metrics=['accuracy'])
+
+    test_loss, test_acc = tucker_model.evaluate(x_test, y_test, batch_size=arg.batch_size)
+    print("Test accuracy for {}: {}".format(k / 8, test_acc))
