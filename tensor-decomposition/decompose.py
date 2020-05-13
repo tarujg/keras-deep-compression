@@ -58,6 +58,7 @@ model.compile(loss='categorical_crossentropy', optimizer=optimizer, metrics=['ac
 # test_loss, test_acc = model.evaluate(x_test, y_test, batch_size=arg.batch_size)
 # print("Test accuracy: {}".format(test_acc))
 
+
 r_fixed = 64
 experiment_r1_fixed = "CONV_2_reconstruction_loss_r1_{}".format(r_fixed)
 experiment_r2_fixed = "CONV_2_reconstruction_loss_r2_{}".format(r_fixed)
@@ -82,10 +83,22 @@ with open(os.path.join('./results', experiment_r2_fixed, 'results.csv'), 'w', ne
     writer.writerow(header)
     writer.writerows(lines_r2)
 
-for k in [1]:#list(range(1, 8)):
+
+experiment_rank = "rank_parameter"
+lines = []
+for k in list(range(1, 9)):
     tucker_model = decomposed_model(model, k)
     optimizer = Adam(lr=arg.lr, decay=1e-6)
     tucker_model.compile(loss='categorical_crossentropy', optimizer=optimizer, metrics=['accuracy'])
 
     test_loss, test_acc = tucker_model.evaluate(x_test, y_test, batch_size=arg.batch_size)
     print("Test accuracy for {}: {}".format(k / 8, test_acc))
+    lines.append([k / 8, test_acc])
+
+create_dir_if_not_exists(os.path.join('./results', experiment_rank))
+with open(os.path.join('./results', experiment_rank, 'results.csv'), 'w', newline='') as file:
+    header = ['x', 'Network Accuracy']
+    writer = csv.writer(file, delimiter='\t')
+    writer.writerow(header)
+    writer.writerows(lines)
+
