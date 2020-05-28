@@ -14,8 +14,13 @@ for item in keys:
         directory = os.path.join('../results', experiment_name)
 
         df = pd.read_csv(os.path.join(directory, 'results.csv'), sep='\t')
-        df['Accuracy'] = 100*df['Accuracy']
-        df.plot(x='Pruning_percentage', y='Accuracy', ax=ax, label="{}_{}".format(item, index+1))
+        df['Accuracy'] = 100 * df['Accuracy']
+        df.plot(x='Pruning_percentage', y='Accuracy', ax=ax, label="{}_{}".format(item, index + 1))
+
+        # Pruning Percentage where accuracy is higher than no pruning
+        higher_acc = df['Accuracy'] > df['Accuracy'][0]
+
+        print("{:5}{} - Pruning Percentage: {}% Test Accuracy: {:.2f}%".format(item, index + 1, df['Accuracy'][higher_acc].idxmax(), df['Accuracy'][higher_acc].max()))
 
     ax.set_xticks(range(0, 105, 10))
     ax.set_yticks(range(0, 95, 10))
